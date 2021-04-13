@@ -4,8 +4,11 @@ from itertools import chain
 class Extractor:
     @classmethod
     def filter_items(cls, collection, field, expected_value):
-        if type(expected_value) == tuple:
-            gens = [cls.filter_items(collection, field, expected_value[x]) for x in range(len(expected_value))]
+        if type(expected_value) == tuple or type(expected_value) == list:
+            gens = [
+                cls.filter_items(collection, field, expected_value[x])
+                for x in range(len(expected_value))
+            ]
             output = chain()
             for gen in gens:
                 output = chain(output, gen)

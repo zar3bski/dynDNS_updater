@@ -48,10 +48,8 @@ class TestGandiUpdater(TestCase):
     def test_uuid_retreival(self, mock_get):
         with open("./tests/out/gandi_zone_response.json") as payload:
 
-            normal_response = json.load(payload)
-
-            # mock_get.return_value = Mock(ok=True)
-            mock_get.return_value.json.return_value = normal_response
+            mock_get.return_value = Mock(ok=True)
+            mock_get.return_value.json.return_value = json.load(payload)
 
             updater = GandiUpdater(
                 "https://fake.gandi.net", "some_key", "somedomain.io", ["tower"]
@@ -80,3 +78,21 @@ class TestGandiUpdater(TestCase):
             "https://fake.gandi.net", "some_key", "somedomain.io", ["tower"]
         )
         self.assertEqual(updater.zone_uuid, "ee788920-9bc5-11eb-823b-00163ea99cff")
+
+    @patch("dyndns_updater.updater.requests.get")
+    def test_record_retreival(self, mock_get): 
+        with open("./tests/out/gandi_records_response.json") as payload:
+            mock_get.return_value = Mock(ok=True)
+            mock_get.return_value.json.return_value = json.load(payload)
+
+            updater = GandiUpdater(
+                "https://fake.gandi.net", "some_key", "somedomain.io", ["infra","infra3"], zone_uuid="00163ee24379-089b3cc4-5b57-11e8-b297"
+            )
+
+            self.assertListEqual(updater.subdomains, ["infra","infra3"])
+
+            updater.get_records()
+
+            self.assertEqual(len(updater.records), 2)
+            self.assertEqual(updater.records[0].get('rrset_name'), "infra")
+            self.assertEqual(updater.records[0].get('rrset_values'), ["148.86.98.105"])
