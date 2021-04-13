@@ -1,0 +1,47 @@
+[
+    {
+        "retry": 3600,
+        "uuid": "ee7889823b-00163e20-9bc5-11eb-a99cff",
+        "zone_href": "https://dns.api.gandi.net/api/v5/zones/ee7889823b-00163e20-9bc5-11eb-a99cff",
+        "minimum": 10800,
+        "domains_href": "https://dns.api.gandi.net/api/v5/zones/ee7889823b-00163e20-9bc5-11eb-a99cff/domains",
+        "refresh": 10800,
+        "zone_records_href": "https://dns.api.gandi.net/api/v5/zones/ee7889823b-00163e20-9bc5-11eb-a99cff/records",
+        "expire": 604800,
+        "sharing_id": "82b7d770-5b51-11e8-9fb1-00163ee24379",
+        "serial": 1618255997,
+        "email": "hostmaster.gandi.net.",
+        "primary_ns": "ns1.gandi.net",
+        "name": "example.com zone"
+    },
+    {
+        "retry": 3600,
+        "uuid": "fe685e70-5ce7-940-00163e4e11e8-976d5",
+        "zone_href": "https://dns.api.gandi.net/api/v5/zones/fe685e70-5ce7-940-00163e4e11e8-976d5",
+        "minimum": 10800,
+        "domains_href": "https://dns.api.gandi.net/api/v5/zones/fe685e70-5ce7-940-00163e4e11e8-976d5/domains",
+        "refresh": 10800,
+        "zone_records_href": "https://dns.api.gandi.net/api/v5/zones/fe685e70-5ce7-940-00163e4e11e8-976d5/records",
+        "expire": 604800,
+        "sharing_id": "82b7d770-5b51-11e8-9fb1-00163ee24379",
+        "serial": 1609351415,
+        "email": "hostmaster.gandi.net.",
+        "primary_ns": "ns1.gandi.net",
+        "name": "some_other_domain"
+    },
+    {
+        "retry": 3600,
+        "uuid": "00163ee24379-089b3cc4-5b57-11e8-b297",
+        "zone_href": "https://dns.api.gandi.net/api/v5/zones/00163ee24379-089b3cc4-5b57-11e8-b297",
+        "minimum": 10800,
+        "domains_href": "https://dns.api.gandi.net/api/v5/zones/00163ee24379-089b3cc4-5b57-11e8-b297/domains",
+        "refresh": 10800,
+        "zone_records_href": "https://dns.api.gandi.net/api/v5/zones/00163ee24379-089b3cc4-5b57-11e8-b297/records",
+        "expire": 604800,
+        "sharing_id": "82b7d770-5b51-11e8-9fb1-00163ee24379",
+        "serial": 1618251459,
+        "email": "hostmaster.gandi.net.",
+        "primary_ns": "ns1.gandi.net",
+        "name": "somedomain.io"
+    }
+]

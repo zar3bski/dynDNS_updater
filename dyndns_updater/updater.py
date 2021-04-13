@@ -1,5 +1,7 @@
 import requests
 import logging
+import json
+from dyndns_updater.extractor import Extractor
 
 logger = logging.getLogger(__name__)
 
@@ -18,13 +20,17 @@ class GandiUpdater(Updater):
         self.zone_uuid = self._get_zone_uuid()
 
     def _get_zone_uuid(self):
+        response = requests.get(
+            "{}/zones".format(self.api_root), headers={"X-Api-Key": self.api_key}
+        )
+        
+        return Extractor.extract_first_field_value(response.json(), "name" , self.domain , "uuid")
+
+    def _generate_zone_uuid(self):
         response = requests.post(
             "{}/zones".format(self.api_root),
             data={"name": "{} zone".format(self.domain)},
-            headers={
-                "X-Api-Key": self.api_key,
-                "Content-Type": "application/json; charset=UTF-8",
-            },
+            headers={"X-Api-Key": self.api_key},
         )
 
         try:
