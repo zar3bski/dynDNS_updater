@@ -36,6 +36,12 @@ class TestExtractor(TestCase):
             self.assertEqual(len(filtered), 4)
             self.assertEqual(filtered[3].get('rrset_values'), ["a9f2:e357:31db:2a01:e0a:18d:c0:f416"])
 
+    def test_filter_multiple_options_more(self):
+        with open("./tests/out/gandi_records_response.json") as payload:
+            filtered = list(
+                Extractor.filter_items(json.load(payload), "rrset_type", ("A", "AAAA", "CNAME"))
+            )
+            self.assertEqual(len(filtered), 6)
 
 class TestGandiUpdater(TestCase):
     @patch("dyndns_updater.updater.requests.get")
