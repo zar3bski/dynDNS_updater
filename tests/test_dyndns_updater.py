@@ -9,14 +9,12 @@ import pytest
 
 class TestExtractor(TestCase):
     def test_(self):
-        with open("./tests/out/response-2.json") as payload:
-            filtered = Extractor._filter_records(
-                json.load(payload), "serial", 1609351415
-            )
-            self.assertTrue(len(list(filtered)), 1)
+        with open("./tests/out/gandi_zone_response.json") as payload:
+            filtered = Extractor.filter_items(json.load(payload), "serial", 1609351415)
+            self.assertEqual(len(list(filtered)), 1)
 
     def test_2(self):
-        with open("./tests/out/response-2.json") as payload:
+        with open("./tests/out/gandi_zone_response.json") as payload:
             filtered = Extractor.extract_first_field_value(
                 json.load(payload), "serial", 1609351415, "expire"
             )
@@ -30,25 +28,19 @@ class TestExtractor(TestCase):
                     json.load(payload), "serial", 1609351415, "name"
                 )
 
+    def test_filter_multiple_options(self):
+        with open("./tests/out/gandi_records_response.json") as payload:
+            filtered = list(
+                Extractor.filter_items(json.load(payload), "rrset_type", ("A", "AAAA"))
+            )
+            self.assertEqual(len(filtered), 4)
+            self.assertEqual(filtered[3].get('rrset_values'), ["a9f2:e357:31db:2a01:e0a:18d:c0:f416"])
+
 
 class TestGandiUpdater(TestCase):
-    @patch("dyndns_updater.updater.requests.post")
-    def test_constructor_inheritance(self, mock_get):
-
-        normal_response = {
-            "message": "Zone Created",
-            "uuid": "ee788920-9bc5-11eb-823b-00163ea99cff",
-        }
-
-        mock_get.return_value = Mock(ok=True)
-        mock_get.return_value.json.return_value = normal_response
-
-        # updater = GandiUpdater('https://dns.api.gandi.net','some_key', 'somedomain.io', ['tower'])
-        # self.assertEqual(updater.zone_uuid, "ee788920-9bc5-11eb-823b-00163ea99cff")
-
     @patch("dyndns_updater.updater.requests.get")
     def test_uuid_retreival(self, mock_get):
-        with open("./tests/out/response-2.json") as payload:
+        with open("./tests/out/gandi_zone_response.json") as payload:
 
             normal_response = json.load(payload)
 
@@ -56,7 +48,29 @@ class TestGandiUpdater(TestCase):
             mock_get.return_value.json.return_value = normal_response
 
             updater = GandiUpdater(
-                "https://dns.api.gandi.net", "some_key", "somedomain.io", ["tower"]
+                "https://fake.gandi.net", "some_key", "somedomain.io", ["tower"]
             )
 
             self.assertEqual(updater.zone_uuid, "00163ee24379-089b3cc4-5b57-11e8-b297")
+
+    @patch("dyndns_updater.updater.requests.get")
+    @patch("dyndns_updater.updater.requests.post")
+    def test_constructor_inheritance(self, mock_post, mock_get):
+
+        get_response = [{"message": "no zone UUID attached to domain"}]
+
+        create_response = {
+            "message": "Zone Created",
+            "uuid": "ee788920-9bc5-11eb-823b-00163ea99cff",
+        }
+
+        mock_get.return_value = Mock(ok=True)
+        mock_get.return_value.json.return_value = get_response
+
+        mock_post.return_value = Mock(ok=True)
+        mock_post.return_value.json.return_value = create_response
+
+        updater = GandiUpdater(
+            "https://fake.gandi.net", "some_key", "somedomain.io", ["tower"]
+        )
+        self.assertEqual(updater.zone_uuid, "ee788920-9bc5-11eb-823b-00163ea99cff")
