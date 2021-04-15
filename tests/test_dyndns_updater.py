@@ -1,5 +1,6 @@
 from dyndns_updater import __version__
 from unittest import TestCase
+from dyndns_updater.locator import Locator
 from dyndns_updater.updater import GandiUpdater, Updater
 from dyndns_updater.extractor import Extractor
 from unittest.mock import Mock, patch
@@ -15,7 +16,7 @@ class TestExtractor(TestCase):
 
     def test_2(self):
         with open("./tests/out/gandi_zone_response.json") as payload:
-            filtered = Extractor.extract_first_field_value(
+            filtered = Extractor.extract_field_value(
                 json.load(payload), "serial", 1609351415, "expire"
             )
             self.assertTrue(type(filtered), json)
@@ -24,7 +25,7 @@ class TestExtractor(TestCase):
     def test_multiplematch_raise_exception(self):
         with pytest.raises(ValueError):
             with open("./tests/out/multiple_match.json") as payload:
-                filtered = Extractor.extract_first_field_value(
+                filtered = Extractor.extract_field_value(
                     json.load(payload), "serial", 1609351415, "name"
                 )
 
@@ -96,3 +97,10 @@ class TestGandiUpdater(TestCase):
             self.assertEqual(len(updater.records), 2)
             self.assertEqual(updater.records[0].get('rrset_name'), "infra")
             self.assertEqual(updater.records[0].get('rrset_values'), ["148.86.98.105"])
+
+
+class TestLocator(TestCase):
+    def test_wrapping(self): 
+        resolver = Locator("opendns")
+        self.assertEqual(resolver.dns_service["rdclass"] , "IN")
+        self.assertEqual(resolver._query , "myip.opendns.com")

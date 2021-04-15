@@ -25,7 +25,7 @@ class GandiUpdater(Updater):
         )
 
         try:
-            return Extractor.extract_first_field_value(
+            return Extractor.extract_field_value(
                 response.json(), "name", self.domain, "uuid"
             )
         except:
