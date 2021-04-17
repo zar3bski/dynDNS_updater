@@ -25,7 +25,7 @@ class TestExtractor(TestCase):
     def test_multiplematch_raise_exception(self):
         with pytest.raises(ValueError):
             with open("./tests/out/multiple_match.json") as payload:
-                filtered = Extractor.extract_field_value(
+                Extractor.extract_field_value(
                     json.load(payload), "serial", 1609351415, "name"
                 )
 
@@ -104,3 +104,7 @@ class TestLocator(TestCase):
         resolver = Locator("opendns")
         self.assertEqual(resolver.dns_service["rdclass"] , "IN")
         self.assertEqual(resolver._query , "myip.opendns.com")
+    
+    def test_using_unknown_dns_service_raises_exception(self): 
+        with pytest.raises(NotImplementedError):
+            Locator("unknown service")
