@@ -5,3 +5,5 @@ dns_providers:
     somedomain.io:
       infra3: AAAA
       infra: A
+    someotherdomain.io:
+      blog: A

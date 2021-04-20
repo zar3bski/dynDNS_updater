@@ -1,11 +1,42 @@
 from dyndns_updater import __version__
 from unittest import TestCase
 from dyndns_updater.locator import Locator
+from dyndns_updater.utils import Config, SingletonMeta
 from dyndns_updater.updater import GandiUpdater, Updater
 from dyndns_updater.extractor import Extractor
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, patch, PropertyMock, MagicMock
 import json
 import pytest
+import gc
+
+
+class TestConfig(TestCase):
+    def tearDown(self):
+        instances = [obj for obj in gc.get_objects() if isinstance(obj, Config)]
+        for i in instances:
+            del i
+
+    def test_factory_simple_example(self):
+        conf = Config.factory("./tests/confs/two_domains.yaml")
+        self.assertEqual(conf.ip_identifier, "cloudflare")
+        self.assertEqual(conf.delta, 900)
+        self.assertEqual(
+            conf.dns_providers,
+            [
+                {
+                    "gandi": "some_key",
+                    "somedomain.io": {"infra3": "AAAA", "infra": "A"},
+                    "someotherdomain.io": {"blog": "A"},
+                }
+            ],
+        )
+
+    # FIXME: find a decent way to test this Singleton based class
+
+    # def test_factory_multiple(self):
+    #    #mocker.patch.dict(SingletonMeta, '_instances', clear=True)
+    #    conf = Config.factory("tests/confs/two_dns_providers.yaml")
+    #    self.assertEqual(len(conf.dns_providers),2)
 
 
 class TestExtractor(TestCase):
@@ -35,16 +66,41 @@ class TestExtractor(TestCase):
                 Extractor.filter_items(json.load(payload), "rrset_type", ("A", "AAAA"))
             )
             self.assertEqual(len(filtered), 4)
-            self.assertEqual(filtered[3].get('rrset_values'), ["a9f2:e357:31db:2a01:e0a:18d:c0:f416"])
+            self.assertEqual(
+                filtered[3].get("rrset_values"), ["a9f2:e357:31db:2a01:e0a:18d:c0:f416"]
+            )
 
     def test_filter_multiple_options_more(self):
         with open("./tests/out/gandi_records_response.json") as payload:
             filtered = list(
-                Extractor.filter_items(json.load(payload), "rrset_type", ("A", "AAAA", "CNAME"))
+                Extractor.filter_items(
+                    json.load(payload), "rrset_type", ("A", "AAAA", "CNAME")
+                )
             )
             self.assertEqual(len(filtered), 6)
 
+
+class TestUpdater(TestCase):
+    def test_factory(self):
+        conf = Config.factory("./tests/confs/two_domains.yaml")
+        self.assertEqual(len(conf.dns_providers), 1)
+
+        updaters = Updater.factory(conf)
+        self.assertEqual(len(updaters), 2)
+
+        self.assertEqual(updaters[0].domain, "somedomain.io")
+        self.assertEqual(updaters[0].credentials, "some_key")
+        self.assertEqual(updaters[0].subdomains, [("infra3", "AAAA"), ("infra", "A")])
+
+        self.assertEqual(updaters[1].domain, "someotherdomain.io")
+        self.assertEqual(updaters[1].credentials, "some_key")
+        self.assertEqual(updaters[1].subdomains, [("blog", "A")])
+
+
 class TestGandiUpdater(TestCase):
+    """NB: intialize is not tested, for it would be a nightmare to patch / mock. This
+    test class focuses rather on the different private methods involved in initialize"""
+
     @patch("dyndns_updater.updater.requests.get")
     def test_uuid_retreival(self, mock_get):
         with open("./tests/out/gandi_zone_response.json") as payload:
@@ -55,12 +111,13 @@ class TestGandiUpdater(TestCase):
             updater = GandiUpdater(
                 "https://fake.gandi.net", "some_key", "somedomain.io", ["tower"]
             )
+            updater._get_zone_uuid()
 
             self.assertEqual(updater.zone_uuid, "00163ee24379-089b3cc4-5b57-11e8-b297")
 
     @patch("dyndns_updater.updater.requests.get")
     @patch("dyndns_updater.updater.requests.post")
-    def test_constructor_inheritance(self, mock_post, mock_get):
+    def test_initialization_callback_if_no_uuid_for_domain(self, mock_post, mock_get):
 
         get_response = [{"message": "no zone UUID attached to domain"}]
 
@@ -78,33 +135,41 @@ class TestGandiUpdater(TestCase):
         updater = GandiUpdater(
             "https://fake.gandi.net", "some_key", "somedomain.io", ["tower"]
         )
+        updater._get_zone_uuid()
         self.assertEqual(updater.zone_uuid, "ee788920-9bc5-11eb-823b-00163ea99cff")
 
     @patch("dyndns_updater.updater.requests.get")
-    def test_record_retreival(self, mock_get): 
-        with open("./tests/out/gandi_records_response.json") as payload:
+    def test_record_retreival(self, mock_get):
+        with open("./tests/out/gandi_records_response.json") as payload_record:
+
             mock_get.return_value = Mock(ok=True)
-            mock_get.return_value.json.return_value = json.load(payload)
+            mock_get.return_value.json.return_value = json.load(payload_record)
 
             updater = GandiUpdater(
-                "https://fake.gandi.net", "some_key", "somedomain.io", ["infra","infra3"], zone_uuid="00163ee24379-089b3cc4-5b57-11e8-b297"
+                "https://fake.gandi.net",
+                "some_key",
+                "somedomain.io",
+                ["infra", "infra3"],
             )
 
-            self.assertListEqual(updater.subdomains, ["infra","infra3"])
+            self.assertListEqual(updater.subdomains, ["infra", "infra3"])
 
-            updater.get_records()
+            updater.zone_uuid = MagicMock(
+                return_value="00163ee24379-089b3cc4-5b57-11e8-b297"
+            )
+            updater._get_records()
 
             self.assertEqual(len(updater.records), 2)
-            self.assertEqual(updater.records[0].get('rrset_name'), "infra")
-            self.assertEqual(updater.records[0].get('rrset_values'), ["148.86.98.105"])
+            self.assertEqual(updater.records[0].get("rrset_name"), "infra")
+            self.assertEqual(updater.records[0].get("rrset_values"), ["148.86.98.105"])
 
 
 class TestLocator(TestCase):
-    def test_wrapping(self): 
+    def test_wrapping(self):
         resolver = Locator("opendns")
-        self.assertEqual(resolver.dns_service["rdclass"] , "IN")
-        self.assertEqual(resolver._query , "myip.opendns.com")
-    
-    def test_using_unknown_dns_service_raises_exception(self): 
+        self.assertEqual(resolver.dns_service["rdclass"], "IN")
+        self.assertEqual(resolver._query, "myip.opendns.com")
+
+    def test_using_unknown_dns_service_raises_exception(self):
         with pytest.raises(NotImplementedError):
             Locator("unknown service")

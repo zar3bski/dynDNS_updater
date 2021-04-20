@@ -1,0 +1,11 @@
+ip_identifier: opendns
+delta : 900
+dns_providers: 
+  - gandi: some_key
+    somedomain.io:
+      infra3: AAAA
+      infra: A
+  - ovh: {"key":"some_key", "secret":"some_secret"}
+    someotherdomain.io:
+      home: AAAA
+      
