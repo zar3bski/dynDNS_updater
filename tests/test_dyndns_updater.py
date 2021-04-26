@@ -109,7 +109,7 @@ class TestGandiUpdater(TestCase):
             mock_get.return_value.json.return_value = json.load(payload)
 
             updater = GandiUpdater(
-                "https://fake.gandi.net", "some_key", "somedomain.io", ["tower"]
+                "https://fake.gandi.net", "some_key", "somedomain.io", [("tower", "A")]
             )
             updater._get_zone_uuid()
 
@@ -133,7 +133,7 @@ class TestGandiUpdater(TestCase):
         mock_post.return_value.json.return_value = create_response
 
         updater = GandiUpdater(
-            "https://fake.gandi.net", "some_key", "somedomain.io", ["tower"]
+            "https://fake.gandi.net", "some_key", "somedomain.io", [("tower", "A")]
         )
         updater._get_zone_uuid()
         self.assertEqual(updater.zone_uuid, "ee788920-9bc5-11eb-823b-00163ea99cff")
@@ -149,10 +149,8 @@ class TestGandiUpdater(TestCase):
                 "https://fake.gandi.net",
                 "some_key",
                 "somedomain.io",
-                ["infra", "infra3"],
+                [("infra", "A"), ("infra3", "AAAA")],
             )
-
-            self.assertListEqual(updater.subdomains, ["infra", "infra3"])
 
             updater.zone_uuid = MagicMock(
                 return_value="00163ee24379-089b3cc4-5b57-11e8-b297"
@@ -162,6 +160,32 @@ class TestGandiUpdater(TestCase):
             self.assertEqual(len(updater.records), 2)
             self.assertEqual(updater.records[0].get("rrset_name"), "infra")
             self.assertEqual(updater.records[0].get("rrset_values"), ["148.86.98.105"])
+            self.assertEqual(
+                updater.records[1],
+                {
+                    "rrset_href": "https://dns.api.gandi.net/api/v5/zones/00163ee24379-089b3cc4-5b57-11e8-b297/records/infra3/AAAA",
+                    "rrset_name": "infra3",
+                    "rrset_ttl": 1800,
+                    "rrset_type": "AAAA",
+                    "rrset_values": ["a9f2:e357:31db:2a01:e0a:18d:c0:f416"],
+                },
+            )
+
+    def test_updater(self):
+        resolver = Locator("opendns")
+        updater = GandiUpdater(
+            "https://fake.gandi.net",
+            "some_key",
+            "somedomain.io",
+            [("infra", "A"), ("infra3", "AAAA")],
+        )
+        resolver._query_dns_server = MagicMock(return_value="10.10.10.10")
+
+        # resolver.local_ipv6 = MagicMock(
+        #    return_value="d6e0:11ea:f0ed:2a01:e0a:18d:c0:3192"
+        # )
+
+        self.assertEqual(resolver.local_ipv4, "10.10.10.10")
 
 
 class TestLocator(TestCase):

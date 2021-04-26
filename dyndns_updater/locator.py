@@ -1,7 +1,9 @@
 from dns.resolver import Resolver
 import logging
+import argparse
 
 logging.basicConfig(level=logging.INFO)
+
 
 class Locator(Resolver):
     """A robust way to identify your public ipv4 / ipv6 without any system dependence
@@ -47,7 +49,6 @@ class Locator(Resolver):
             rdtype=self.dns_service[ip_version]["rdtype"],
             rdclass=self._rdclass,
         )
-        # FIXME: ip format is messy
         return answer.response.answer[0][0].to_text()
 
     @property
@@ -75,3 +76,13 @@ class Locator(Resolver):
                 )
             )
             return self._local_ipv6
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("ip_identifier", choices=Locator.dns_servers.keys())
+    args = parser.parse_args()
+
+    locator = Locator(args.ip_identifier)
+    print("current IPv4: {}".format(locator.local_ipv4))
+    print("current IPv6: {}".format(locator.local_ipv6))
