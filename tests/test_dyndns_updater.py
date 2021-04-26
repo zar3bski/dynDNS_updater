@@ -160,6 +160,7 @@ class TestGandiUpdater(TestCase):
             self.assertEqual(len(updater.records), 2)
             self.assertEqual(updater.records[0].get("rrset_name"), "infra")
             self.assertEqual(updater.records[0].get("rrset_values"), ["148.86.98.105"])
+            # FIXME records should not include rrset_href
             self.assertEqual(
                 updater.records[1],
                 {
