@@ -17,7 +17,7 @@ parser.add_argument("config_path", help="path to a valid conf file")
 
 args = parser.parse_args()
 
-config = Config.factory(args.path)
+config = Config.factory(args.config_path)
 updaters = Updater.factory(config)
 locator = Locator(config.ip_identifier)
 

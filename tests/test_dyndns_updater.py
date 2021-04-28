@@ -180,13 +180,49 @@ class TestGandiUpdater(TestCase):
             "somedomain.io",
             [("infra", "A"), ("infra3", "AAAA")],
         )
-        resolver._query_dns_server = MagicMock(return_value="10.10.10.10")
 
-        # resolver.local_ipv6 = MagicMock(
-        #    return_value="d6e0:11ea:f0ed:2a01:e0a:18d:c0:3192"
-        # )
+        updater.records = [
+            {
+                "rrset_type": "A",
+                "rrset_ttl": 1800,
+                "rrset_name": "infra",
+                "rrset_values": ["148.86.98.105"],
+            },
+            {
+                "rrset_type": "AAAA",
+                "rrset_ttl": 1800,
+                "rrset_name": "infra3",
+                "rrset_values": ["a9f2:e357:31db:2a01:e0a:18d:c0:f416"],
+            },
+        ]
 
-        self.assertEqual(resolver.local_ipv4, "10.10.10.10")
+        def _side_effect_func(value):
+            if value == "4":
+                return "10.10.10.10"
+            elif value == "6":
+                return "d6e0:11ea:f0ed:2a01:e0a:18d:c0:3192"
+
+        resolver._query_dns_server = MagicMock(side_effect=_side_effect_func)
+
+        updater.check_and_update(resolver)
+
+        self.assertEqual(
+            updater.records,
+            [
+                {
+                    "rrset_type": "A",
+                    "rrset_ttl": 1800,
+                    "rrset_name": "infra",
+                    "rrset_values": ["10.10.10.10"],
+                },
+                {
+                    "rrset_type": "AAAA",
+                    "rrset_ttl": 1800,
+                    "rrset_name": "infra3",
+                    "rrset_values": ["d6e0:11ea:f0ed:2a01:e0a:18d:c0:3192"],
+                },
+            ],
+        )
 
 
 class TestLocator(TestCase):

@@ -1,5 +1,8 @@
 import yaml
 from threading import Lock, Thread
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 
 class SingletonMeta(type):
@@ -19,12 +22,11 @@ class SingletonMeta(type):
 
 
 class Config(metaclass=SingletonMeta):
-
     def __init__(self, ip_identifier, delta, dns_providers):
         self.ip_identifier = ip_identifier
         self.delta = delta
         self.dns_providers = dns_providers
-    
+
     def __del__(self):
         pass
 
@@ -33,3 +35,7 @@ class Config(metaclass=SingletonMeta):
         with open(path) as file:
             doc = yaml.load(file, Loader=yaml.FullLoader)
             return Config(doc["ip_identifier"], doc["delta"], doc["dns_providers"])
+
+
+def log(fn):
+    logging.info("Executing {}.{}".format(fn.__class__, fn))
