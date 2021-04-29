@@ -8,6 +8,7 @@ from unittest.mock import Mock, patch, PropertyMock, MagicMock
 import json
 import pytest
 import gc
+import re
 
 
 class TestConfig(TestCase):
@@ -234,3 +235,11 @@ class TestLocator(TestCase):
     def test_using_unknown_dns_service_raises_exception(self):
         with pytest.raises(NotImplementedError):
             Locator("unknown service")
+
+    def test_ip_string_format(self):
+        resolver = Locator("opendns")
+        current_ip = resolver.local_ipv4
+
+        self.assertEqual(type(current_ip), str)
+
+        self.assertTrue(re.match(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$", current_ip))
