@@ -4,7 +4,6 @@ import json
 from dyndns_updater.extractor import Extractor
 from dyndns_updater.locator import Locator
 from abc import abstractmethod, ABC
-from dyndns_updater.utils import log
 
 logging.basicConfig(level=logging.INFO)
 
@@ -55,7 +54,6 @@ class Updater(ABC):
 
 
 class GandiUpdater(Updater):
-    @log
     def initialize(self):
         self._get_zone_uuid()
         self._get_records()
@@ -103,7 +101,6 @@ class GandiUpdater(Updater):
             )
         )
 
-    @log
     def record_missing(self, locator: Locator):
         missing = list(
             filter(
@@ -151,7 +148,6 @@ class GandiUpdater(Updater):
                     )
                 )
 
-    @log
     def check_and_update(self, locator: Locator):
         ipv4 = locator.local_ipv4
         ipv6 = locator.local_ipv6

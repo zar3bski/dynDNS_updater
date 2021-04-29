@@ -21,14 +21,14 @@ config = Config.factory(args.config_path)
 updaters = Updater.factory(config)
 locator = Locator(config.ip_identifier)
 
-map(lambda x: x.initialize(), updaters)
-map(lambda x: x.record_missing(locator), updaters)
+list(map(lambda x: x.initialize(), updaters))
+list(map(lambda x: x.record_missing(locator), updaters))
 
 if args.mode == "now":
-    map(lambda x: x.check_and_update(locator), updaters)
+    list(map(lambda x: x.check_and_update(locator), updaters))
 elif args.mode == "scheduled":
     schedule.every(config.delta).seconds.do(
-        map(lambda x: x.check_and_update(locator), updaters)
+        list(map(lambda x: x.check_and_update(locator), updaters))
     )
     while True:
         schedule.run_pending()

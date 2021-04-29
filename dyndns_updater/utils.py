@@ -35,7 +35,3 @@ class Config(metaclass=SingletonMeta):
         with open(path) as file:
             doc = yaml.load(file, Loader=yaml.FullLoader)
             return Config(doc["ip_identifier"], doc["delta"], doc["dns_providers"])
-
-
-def log(fn):
-    logging.info("Executing {}.{}".format(fn.__class__, fn))
