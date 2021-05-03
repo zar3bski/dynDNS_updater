@@ -136,6 +136,46 @@ class TestGandiUpdater(TestCase):
                 },
             )
 
+    # TODO: reprendre record_missing
+    @patch("dyndns_updater.updater.requests.post")
+    def test_record_missing(self, mock_post):
+        # Initialization
+        resolver = Locator("opendns")
+        updater = GandiUpdater(
+            "https://fake.gandi.net",
+            "some_key",
+            "somedomain.io",
+            [("infra", "A"), ("infra3", "AAAA")],
+        )
+
+        updater.records = [
+            {
+                "rrset_name": "infra3",
+                "rrset_ttl": 1800,
+                "rrset_type": "AAAA",
+                "rrset_values": ["a9f2:e357:31db:2a01:e0a:18d:c0:f416"],
+            }
+        ]
+
+        # mocking
+        mock_post.return_value = Mock(ok=True)
+        mock_post.return_value.status_code = 201
+        mock_post.return_value.json.return_value = {"message": "DNS Records Created"}
+        resolver._query_dns_server = MagicMock(return_value="10.10.10.10")
+
+        # testing
+        updater.record_missing(resolver)
+
+        self.assertEqual(
+            updater.records[1],
+            {
+                "rrset_name": "infra",
+                "rrset_ttl": 1800,
+                "rrset_type": "A",
+                "rrset_values": ["10.10.10.10"],
+            },
+        )
+
     @patch("dyndns_updater.updater.requests.put")
     def test_updater(self, mock_put):
         # Initialization

@@ -80,18 +80,11 @@ class GandiUpdater(Updater):
             )
 
     def record_missing(self, locator: Locator):
-        missing = list(
-            filter(
-                lambda x: x[0] not in [y["rrset_name"] for y in self.records],
-                self.subdomains,
-            )
+        missing = filter(
+            lambda x: x[0] not in [y["rrset_name"] for y in self.records],
+            self.subdomains,
         )
-
-        logging.info(
-            "{} present in conf but missing from Gandi's records from domain: {}. recording those".format(
-                missing, self.domain
-            )
-        )
+        # FIXME: integration issue 'rrset_values is missing'
         new_records = [
             {
                 "rrset_type": "{}".format(subdomain[1]),
@@ -107,22 +100,23 @@ class GandiUpdater(Updater):
             }
             for subdomain in missing
         ]
-
-        logging.debug("new records {}".format(new_records))
-
-        for record in new_records:
+        if new_records != []:
             response = requests.post(
                 "{}/domains/{}/records".format(self.api_root, self.domain),
                 headers={"Authorization": "Apikey {}".format(self.credentials)},
-                json=record,
+                json=new_records,
             )
             if response.status_code == 201 or response.status_code == 200:
-                logging.info("{} successfully recorded!".format(record["rrset_name"]))
+                logging.info(
+                    "{} successfully recorded!".format(
+                        [r["rrset_name"] for r in new_records]
+                    )
+                )
                 self.records.extend(new_records)
             else:
                 logging.warning(
                     "failed to record {}. Reason: {}".format(
-                        record["rrset_name"], response.text
+                        [r["rrset_name"] for r in new_records], response.text
                     )
                 )
 
