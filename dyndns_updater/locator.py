@@ -49,7 +49,7 @@ class Locator(Resolver):
             rdtype=self.dns_service[ip_version]["rdtype"],
             rdclass=self._rdclass,
         )
-        return answer.response.answer[0][0].to_text()
+        return answer.response.answer[0][0].to_text().strip('"')
 
     @property
     def local_ipv4(self):

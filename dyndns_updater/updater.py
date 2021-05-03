@@ -41,7 +41,7 @@ class Updater(ABC):
                 ):
                     pool.append(
                         GandiUpdater(
-                            "https://dns.api.gandi.net/api/v5",
+                            "https://api.gandi.net/v5/livedns",
                             provider["gandi"],
                             domain,
                             list(subdomains.items()),
@@ -55,51 +55,29 @@ class Updater(ABC):
 
 class GandiUpdater(Updater):
     def initialize(self):
-        self._get_zone_uuid()
         self._get_records()
-
-    def _get_zone_uuid(self):
-        response = requests.get(
-            "{}/zones".format(self.api_root), headers={"X-Api-Key": self.credentials}
-        )
-
-        try:
-            self.zone_uuid = Extractor.extract_field_value(
-                response.json(), "name", self.domain, "uuid"
-            )
-
-        except:
-            return self._generate_zone_uuid()
-
-    def _generate_zone_uuid(self):
-        response = requests.post(
-            "{}/zones".format(self.api_root),
-            data={"name": "{} zone".format(self.domain)},
-            headers={"X-Api-Key": self.credentials},
-        )
-
-        try:
-            self.zone_uuid = response.json()["uuid"]
-        except Exception as e:
-            logging.warn(
-                "could not retreive zone uuid. HTTP status code {}: \n {}".format(
-                    response.status_code, response.json
-                )
-            )
-            raise e
 
     def _get_records(self):
         response = requests.get(
-            "{}/zones/{}/records".format(self.api_root, self.zone_uuid),
-            headers={"X-Api-Key": self.credentials},
+            "{}/domains/{}/records".format(self.api_root, self.domain),
+            headers={"Authorization": "Apikey {}".format(self.credentials)},
         )
-
-        a_records = Extractor.filter_items(response.json(), "rrset_type", ("A", "AAAA"))
-        self.records = list(
-            filter(
-                lambda x: x["rrset_name"] in [t[0] for t in self.subdomains], a_records
+        if response.status_code == 200:
+            a_records = Extractor.filter_items(
+                response.json(), "rrset_type", ("A", "AAAA")
             )
-        )
+            self.records = list(
+                filter(
+                    lambda x: x["rrset_name"] in [t[0] for t in self.subdomains],
+                    a_records,
+                )
+            )
+        else:
+            logging.error(
+                "Failed to retreive records for {}\n Api response: {}".format(
+                    self.domain, response.json()
+                )
+            )
 
     def record_missing(self, locator: Locator):
         missing = list(
@@ -110,8 +88,8 @@ class GandiUpdater(Updater):
         )
 
         logging.info(
-            "{} present in conf but missing from Gandi's records from zone: {}. recording those".format(
-                missing, self.zone_uuid
+            "{} present in conf but missing from Gandi's records from domain: {}. recording those".format(
+                missing, self.domain
             )
         )
         new_records = [
@@ -134,8 +112,8 @@ class GandiUpdater(Updater):
 
         for record in new_records:
             response = requests.post(
-                "{}/zones/{}/records".format(self.api_root, self.zone_uuid),
-                headers={"X-Api-Key": self.credentials},
+                "{}/domains/{}/records".format(self.api_root, self.domain),
+                headers={"Authorization": "Apikey {}".format(self.credentials)},
                 json=record,
             )
             if response.status_code == 201 or response.status_code == 200:
@@ -154,18 +132,19 @@ class GandiUpdater(Updater):
 
         def _update_and_log(record, new_ip):
             try:
-                new_record = record.copy()
-                new_record["rrset_values"][0] = new_ip
                 response = requests.put(
-                    "{}/domains/{}/records/{}".format(
-                        self.api_root, self.domain, record["rrset_name"]
+                    "{}/domains/{}/records/{}/{}".format(
+                        self.api_root,
+                        self.domain,
+                        record["rrset_name"],
+                        record["rrset_type"],
                     ),
-                    headers={"X-Api-Key": self.credentials},
-                    json=new_record.pop("rrset_name", None),
+                    headers={"Authorization": "Apikey {}".format(self.credentials)},
+                    json={"rrset_ttl": 1800, "rrset_values": ["{}".format(new_ip)]},
                 )
                 if response.status_code == 201:
                     logging.info("{} updated with success".format(record["rrset_name"]))
-                    record = new_record
+                    record["rrset_values"][0] = new_ip
                 else:
                     logging.warning(
                         "Could not update {} ({}): {}".format(

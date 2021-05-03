@@ -1,5 +1,6 @@
 from itertools import chain
 
+
 class Extractor:
     @classmethod
     def filter_items(cls, collection, field, expected_value):

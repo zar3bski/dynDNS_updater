@@ -103,49 +103,15 @@ class TestGandiUpdater(TestCase):
     test class focuses rather on the different private methods involved in initialize"""
 
     @patch("dyndns_updater.updater.requests.get")
-    def test_uuid_retreival(self, mock_get):
-        with open("./tests/out/gandi_zone_response.json") as payload:
-
-            mock_get.return_value = Mock(ok=True)
-            mock_get.return_value.json.return_value = json.load(payload)
-
-            updater = GandiUpdater(
-                "https://fake.gandi.net", "some_key", "somedomain.io", [("tower", "A")]
-            )
-            updater._get_zone_uuid()
-
-            self.assertEqual(updater.zone_uuid, "00163ee24379-089b3cc4-5b57-11e8-b297")
-
-    @patch("dyndns_updater.updater.requests.get")
-    @patch("dyndns_updater.updater.requests.post")
-    def test_initialization_callback_if_no_uuid_for_domain(self, mock_post, mock_get):
-
-        get_response = [{"message": "no zone UUID attached to domain"}]
-
-        create_response = {
-            "message": "Zone Created",
-            "uuid": "ee788920-9bc5-11eb-823b-00163ea99cff",
-        }
-
-        mock_get.return_value = Mock(ok=True)
-        mock_get.return_value.json.return_value = get_response
-
-        mock_post.return_value = Mock(ok=True)
-        mock_post.return_value.json.return_value = create_response
-
-        updater = GandiUpdater(
-            "https://fake.gandi.net", "some_key", "somedomain.io", [("tower", "A")]
-        )
-        updater._get_zone_uuid()
-        self.assertEqual(updater.zone_uuid, "ee788920-9bc5-11eb-823b-00163ea99cff")
-
-    @patch("dyndns_updater.updater.requests.get")
     def test_record_retreival(self, mock_get):
         with open("./tests/out/gandi_records_response.json") as payload_record:
 
+            # mocking
             mock_get.return_value = Mock(ok=True)
+            mock_get.return_value.status_code = 200
             mock_get.return_value.json.return_value = json.load(payload_record)
 
+            # initialization
             updater = GandiUpdater(
                 "https://fake.gandi.net",
                 "some_key",
@@ -153,9 +119,6 @@ class TestGandiUpdater(TestCase):
                 [("infra", "A"), ("infra3", "AAAA")],
             )
 
-            updater.zone_uuid = MagicMock(
-                return_value="00163ee24379-089b3cc4-5b57-11e8-b297"
-            )
             updater._get_records()
 
             self.assertEqual(len(updater.records), 2)
@@ -165,7 +128,7 @@ class TestGandiUpdater(TestCase):
             self.assertEqual(
                 updater.records[1],
                 {
-                    "rrset_href": "https://dns.api.gandi.net/api/v5/zones/00163ee24379-089b3cc4-5b57-11e8-b297/records/infra3/AAAA",
+                    "rrset_href": "https://api.gandi.net/v5/livedns/domains/somedomain.io/records/infra3/AAAA",
                     "rrset_name": "infra3",
                     "rrset_ttl": 1800,
                     "rrset_type": "AAAA",
@@ -173,7 +136,9 @@ class TestGandiUpdater(TestCase):
                 },
             )
 
-    def test_updater(self):
+    @patch("dyndns_updater.updater.requests.put")
+    def test_updater(self, mock_put):
+        # Initialization
         resolver = Locator("opendns")
         updater = GandiUpdater(
             "https://fake.gandi.net",
@@ -197,6 +162,7 @@ class TestGandiUpdater(TestCase):
             },
         ]
 
+        # Mock
         def _side_effect_func(value):
             if value == "4":
                 return "10.10.10.10"
@@ -204,9 +170,13 @@ class TestGandiUpdater(TestCase):
                 return "d6e0:11ea:f0ed:2a01:e0a:18d:c0:3192"
 
         resolver._query_dns_server = MagicMock(side_effect=_side_effect_func)
+        mock_put.return_value = Mock(ok=True)
+        mock_put.return_value.status_code = 201
+        mock_put.return_value.json.return_value = {"message": "DNS Record Created"}
 
         updater.check_and_update(resolver)
 
+        # Records get updated for future comparitions
         self.assertEqual(
             updater.records,
             [
