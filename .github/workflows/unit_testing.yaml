@@ -24,16 +24,3 @@ jobs:
       - name: Unit testing
         run: |
           poetry run pytest
-      
-      - name: Build
-        run: | 
-          poetry build
-      
-      - name: Store artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: dist
-          retention-days: 5
-          path: |
-            dist
-            !dist/**/*.md

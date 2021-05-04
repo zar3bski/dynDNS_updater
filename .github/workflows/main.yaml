@@ -1,0 +1,45 @@
+name: Main
+on:
+  push:
+    branches: [ $default-branch, init ]
+  pull_request:
+    branches: [ $default-branch ]
+
+jobs:
+  unit_testing:
+    name: Test on node ${{ matrix.node_version }} and ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        node_version: ['8', '10', '12']
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+
+    steps:  
+      - uses: actions/checkout@v2
+
+      - name: Set up env
+        run: |
+          pip install poetry
+          poetry install
+
+      - name: Unit testing
+        run: |
+          poetry run pytest
+  
+  publish: 
+    runs-on: ubuntu-latest
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      # Runs a single command using the runners shell
+      - name: Set up env
+        run: |
+          pip install poetry
+          poetry install
+
+      - name: Build
+        run: poetry build
+
+      - name: Publish Pypi
+        run: poetry publish
