@@ -84,9 +84,10 @@ class TestExtractor(TestCase):
 class TestUpdater(TestCase):
     def test_factory(self):
         conf = Config.factory("./tests/confs/two_domains.yaml")
+        resolver = Locator("opendns")
         self.assertEqual(len(conf.dns_providers), 1)
 
-        updaters = Updater.factory(conf)
+        updaters = Updater.factory(conf, resolver)
         self.assertEqual(len(updaters), 2)
 
         self.assertEqual(updaters[0].domain, "somedomain.io")
@@ -102,6 +103,16 @@ class TestGandiUpdater(TestCase):
     """NB: intialize is not tested, for it would be a nightmare to patch / mock. This
     test class focuses rather on the different private methods involved in initialize"""
 
+    def setUp(self):
+        resolver = Locator("opendns")
+        self.updater = GandiUpdater(
+            "https://fake.gandi.net",
+            "some_key",
+            "somedomain.io",
+            [("infra", "A"), ("infra3", "AAAA")],
+            resolver,
+        )
+
     @patch("dyndns_updater.updater.requests.get")
     def test_record_retreival(self, mock_get):
         with open("./tests/out/gandi_records_response.json") as payload_record:
@@ -111,22 +122,16 @@ class TestGandiUpdater(TestCase):
             mock_get.return_value.status_code = 200
             mock_get.return_value.json.return_value = json.load(payload_record)
 
-            # initialization
-            updater = GandiUpdater(
-                "https://fake.gandi.net",
-                "some_key",
-                "somedomain.io",
-                [("infra", "A"), ("infra3", "AAAA")],
+            self.updater._get_records()
+
+            self.assertEqual(len(self.updater.records), 2)
+            self.assertEqual(self.updater.records[0].get("rrset_name"), "infra")
+            self.assertEqual(
+                self.updater.records[0].get("rrset_values"), ["148.86.98.105"]
             )
-
-            updater._get_records()
-
-            self.assertEqual(len(updater.records), 2)
-            self.assertEqual(updater.records[0].get("rrset_name"), "infra")
-            self.assertEqual(updater.records[0].get("rrset_values"), ["148.86.98.105"])
             # FIXME records should not include rrset_href
             self.assertEqual(
-                updater.records[1],
+                self.updater.records[1],
                 {
                     "rrset_href": "https://api.gandi.net/v5/livedns/domains/somedomain.io/records/infra3/AAAA",
                     "rrset_name": "infra3",
@@ -136,19 +141,12 @@ class TestGandiUpdater(TestCase):
                 },
             )
 
-    # TODO: reprendre record_missing
+    # TODO: reprendre _record_missing
     @patch("dyndns_updater.updater.requests.post")
-    def test_record_missing(self, mock_post):
+    def test__record_missing(self, mock_post):
         # Initialization
-        resolver = Locator("opendns")
-        updater = GandiUpdater(
-            "https://fake.gandi.net",
-            "some_key",
-            "somedomain.io",
-            [("infra", "A"), ("infra3", "AAAA")],
-        )
 
-        updater.records = [
+        self.updater.records = [
             {
                 "rrset_name": "infra3",
                 "rrset_ttl": 1800,
@@ -161,10 +159,10 @@ class TestGandiUpdater(TestCase):
         mock_post.return_value = Mock(ok=True)
         mock_post.return_value.status_code = 201
         mock_post.return_value.json.return_value = {"message": "DNS Records Created"}
-        resolver._query_dns_server = MagicMock(return_value="10.10.10.10")
+        self.updater.locator._query_dns_server = MagicMock(return_value="10.10.10.10")
 
         # testing
-        updater.record_missing(resolver)
+        self.updater._record_missing()
 
         # outgoing request
         mock_post.assert_called_with(
@@ -179,7 +177,7 @@ class TestGandiUpdater(TestCase):
         )
 
         self.assertEqual(
-            updater.records[1],
+            self.updater.records[1],
             {
                 "rrset_name": "infra",
                 "rrset_ttl": 1800,
@@ -191,15 +189,8 @@ class TestGandiUpdater(TestCase):
     @patch("dyndns_updater.updater.requests.put")
     def test_updater(self, mock_put):
         # Initialization
-        resolver = Locator("opendns")
-        updater = GandiUpdater(
-            "https://fake.gandi.net",
-            "some_key",
-            "somedomain.io",
-            [("infra", "A"), ("infra3", "AAAA")],
-        )
 
-        updater.records = [
+        self.updater.records = [
             {
                 "rrset_type": "A",
                 "rrset_ttl": 1800,
@@ -221,16 +212,18 @@ class TestGandiUpdater(TestCase):
             elif value == "6":
                 return "d6e0:11ea:f0ed:2a01:e0a:18d:c0:3192"
 
-        resolver._query_dns_server = MagicMock(side_effect=_side_effect_func)
+        self.updater.locator._query_dns_server = MagicMock(
+            side_effect=_side_effect_func
+        )
         mock_put.return_value = Mock(ok=True)
         mock_put.return_value.status_code = 201
         mock_put.return_value.json.return_value = {"message": "DNS Record Created"}
 
-        updater.check_and_update(resolver)
+        self.updater.check_and_update()
 
         # Records get updated for future comparitions
         self.assertEqual(
-            updater.records,
+            self.updater.records,
             [
                 {
                     "rrset_type": "A",

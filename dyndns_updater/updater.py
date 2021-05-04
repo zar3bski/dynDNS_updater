@@ -9,11 +9,12 @@ logging.basicConfig(level=logging.INFO)
 
 
 class Updater(ABC):
-    def __init__(self, api_root, credentials, domain, subdomains):
+    def __init__(self, api_root, credentials, domain, subdomains, locator):
         self.api_root = api_root
         self.credentials = credentials
         self.domain = domain
         self.subdomains = subdomains
+        self.locator = locator
 
     def __str__(self):
         return "{}::{}".format(type(self), self.domain)
@@ -23,7 +24,7 @@ class Updater(ABC):
         pass
 
     @abstractmethod
-    def record_missing(self, locator: Locator):
+    def _record_missing(self, locator: Locator):
         pass
 
     @abstractmethod
@@ -31,7 +32,7 @@ class Updater(ABC):
         pass
 
     @classmethod
-    def factory(cls, config):
+    def factory(cls, config, locator):
         pool = []
         for provider in config.dns_providers:
             # just complete this enumeration if new providers are created
@@ -45,6 +46,7 @@ class Updater(ABC):
                             provider["gandi"],
                             domain,
                             list(subdomains.items()),
+                            locator,
                         )
                     )
         logging.info(
@@ -56,6 +58,7 @@ class Updater(ABC):
 class GandiUpdater(Updater):
     def initialize(self):
         self._get_records()
+        self._record_missing()
 
     def _get_records(self):
         response = requests.get(
@@ -79,21 +82,20 @@ class GandiUpdater(Updater):
                 )
             )
 
-    def record_missing(self, locator: Locator):
+    def _record_missing(self):
         missing = filter(
             lambda x: x[0] not in [y["rrset_name"] for y in self.records],
             self.subdomains,
         )
-        # FIXME: integration issue 'rrset_values is missing'
         new_records = [
             {
                 "rrset_type": "{}".format(subdomain[1]),
                 "rrset_name": "{}".format(subdomain[0]),
                 "rrset_values": [
                     "{}".format(
-                        locator.local_ipv4
+                        self.locator.local_ipv4
                         if subdomain[1] == "A"
-                        else locator.local_ipv6
+                        else self.locator.local_ipv6
                     )
                 ],
                 "rrset_ttl": 1800,
@@ -121,9 +123,9 @@ class GandiUpdater(Updater):
                         )
                     )
 
-    def check_and_update(self, locator: Locator):
-        ipv4 = locator.local_ipv4
-        ipv6 = locator.local_ipv6
+    def check_and_update(self):
+        ipv4 = self.locator.local_ipv4
+        ipv6 = self.locator.local_ipv6
 
         def _update_and_log(record, new_ip):
             try:

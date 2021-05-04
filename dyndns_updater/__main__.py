@@ -18,17 +18,18 @@ parser.add_argument("config_path", help="path to a valid conf file")
 args = parser.parse_args()
 
 config = Config.factory(args.config_path)
-updaters = Updater.factory(config)
 locator = Locator(config.ip_identifier)
+updaters = Updater.factory(config, locator)
 
 list(map(lambda x: x.initialize(), updaters))
-list(map(lambda x: x.record_missing(locator), updaters))
 
 if args.mode == "now":
-    list(map(lambda x: x.check_and_update(locator), updaters))
+    list(map(lambda x: x.check_and_update(), updaters))
 elif args.mode == "scheduled":
     schedule.every(config.delta).seconds.do(
-        list(map(lambda x: x.check_and_update(locator), updaters))
+        list(map(lambda x: x.check_and_update(), updaters))
     )
     while True:
         schedule.run_pending()
+
+logging.info("dyndns_updater exited normally")
