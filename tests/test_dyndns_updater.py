@@ -166,6 +166,18 @@ class TestGandiUpdater(TestCase):
         # testing
         updater.record_missing(resolver)
 
+        # outgoing request
+        mock_post.assert_called_with(
+            "https://fake.gandi.net/domains/somedomain.io/records",
+            headers={"Authorization": "Apikey some_key"},
+            json={
+                "rrset_type": "A",
+                "rrset_name": "infra",
+                "rrset_values": ["10.10.10.10"],
+                "rrset_ttl": 1800,
+            },
+        )
+
         self.assertEqual(
             updater.records[1],
             {

@@ -101,24 +101,25 @@ class GandiUpdater(Updater):
             for subdomain in missing
         ]
         if new_records != []:
-            response = requests.post(
-                "{}/domains/{}/records".format(self.api_root, self.domain),
-                headers={"Authorization": "Apikey {}".format(self.credentials)},
-                json=new_records,
-            )
-            if response.status_code == 201 or response.status_code == 200:
-                logging.info(
-                    "{} successfully recorded!".format(
-                        [r["rrset_name"] for r in new_records]
-                    )
+            for record in new_records:
+                response = requests.post(
+                    "{}/domains/{}/records".format(self.api_root, self.domain),
+                    headers={"Authorization": "Apikey {}".format(self.credentials)},
+                    json=record,
                 )
-                self.records.extend(new_records)
-            else:
-                logging.warning(
-                    "failed to record {}. Reason: {}".format(
-                        [r["rrset_name"] for r in new_records], response.text
+                if response.status_code == 201 or response.status_code == 200:
+                    logging.info(
+                        "{} successfully recorded!".format(record["rrset_name"])
                     )
-                )
+                    self.records.append(record)
+                else:
+                    logging.warning(
+                        "failed to record {} ({}). Reason: {}".format(
+                            record["rrset_name"],
+                            response.status_code,
+                            response.text,
+                        )
+                    )
 
     def check_and_update(self, locator: Locator):
         ipv4 = locator.local_ipv4
