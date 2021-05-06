@@ -1,7 +1,5 @@
-name: Merge_ckecks
-on:
-  pull_request:
-    branches: [ $default-branch ]
+name: CI
+on: [push]
 
 jobs:
   unit_testing_multiple_os:
@@ -43,4 +41,3 @@ jobs:
           
       - name: Linting
         run: poetry run pylint dyndns_updater/
-
