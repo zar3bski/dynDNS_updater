@@ -1,6 +1,10 @@
 # dynDNS_updater
 standalone DNS updater for Gandi
 
+<p align="center">
+<a href="https://github.com/zar3bski/dyndns_updater/actions"><img alt="Actions Status" src="https://github.com/psf/black/workflows/Test/badge.svg"></a>
+</p>
+
 The main purpose of **dynDNS_updater** is to keep the DNS records pointing to your servers up to date **without any system dependencies** (except python, of course) nor any fancy web services to identify their public IPv4 / IPv6
 
 ## Usage
@@ -33,8 +37,8 @@ Types of records
 
 ### Onboarding
 
-* [poetry]()
-* []()
+* [poetry](https://python-poetry.org/): dependency manager
+* [black](https://github.com/psf/black): 
 
 ```bash
 git clone https://github.com/zar3bski/dynDNS_updater.git

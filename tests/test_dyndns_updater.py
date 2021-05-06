@@ -127,7 +127,7 @@ class TestGandiUpdater(TestCase):
             self.assertEqual(len(self.updater.records), 2)
             self.assertEqual(self.updater.records[0].get("rrset_name"), "infra")
             self.assertEqual(
-                self.updater.records[0].get("rrset_values"), ["148.86.98.104"]
+                self.updater.records[0].get("rrset_values"), ["148.86.98.105"]
             )
             # FIXME records should not include rrset_href
             self.assertEqual(
@@ -141,7 +141,6 @@ class TestGandiUpdater(TestCase):
                 },
             )
 
-    # TODO: reprendre _record_missing
     @patch("dyndns_updater.updater.requests.post")
     def test__record_missing(self, mock_post):
         # Initialization

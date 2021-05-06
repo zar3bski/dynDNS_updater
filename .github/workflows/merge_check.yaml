@@ -1,0 +1,58 @@
+name: Merge_ckecks
+on:
+  push:
+    branches: [ $default-branch, init ]
+  pull_request:
+    branches: [ $default-branch ]
+
+jobs:
+  unit_testing_multiple_os:
+    name: Test on node ${{ matrix.node_version }} and ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        node_version: ['10', '12']
+        os: [ubuntu-latest, windows-latest]
+
+    steps:  
+      - uses: actions/checkout@v2
+
+      - name: Set up env
+        run: |
+          pip install poetry==1.1.6
+          poetry install
+
+      - name: Unit testing
+        run: |
+          poetry run pytest
+
+  code_quality:
+    runs-on: ubuntu-latest
+    steps: 
+      - name: Code formating
+        run: poetry run black --check dyndns_updater/
+          
+      - name: Linting
+        run: poetry run pylint dyndns_updater/
+
+  
+  publish: 
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up env
+        run: |
+          pip install poetry
+          poetry install
+
+      - name: Build
+        run: poetry build
+
+      - name: Publish on Pypi
+        env: 
+          PYPI_USER: ${{ secrets.PYPI_USER }}
+          PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+        run: |
+          echo $PYPI_USER
+          poetry publish -u "$PYPI_USER" -p "$PYPI_PASSWORD" 
