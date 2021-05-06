@@ -1,0 +1,85 @@
+[
+    {
+        "rrset_type": "A",
+        "rrset_ttl": 1800,
+        "rrset_name": "@",
+        "rrset_href": "https://api.gandi.net/v5/livedns/domains/somedomain.io/records/%40/A",
+        "rrset_values": [
+            "35.185.44.232"
+        ]
+    },
+    {
+        "rrset_type": "MX",
+        "rrset_ttl": 10800,
+        "rrset_name": "@",
+        "rrset_href": "https://api.gandi.net/v5/livedns/domains/somedomain.io/records/%40/MX",
+        "rrset_values": [
+            "10 spool.mail.gandi.net.",
+            "50 fb.mail.gandi.net."
+        ]
+    },
+    {
+        "rrset_type": "TXT",
+        "rrset_ttl": 1800,
+        "rrset_name": "@",
+        "rrset_href": "https://api.gandi.net/v5/livedns/domains/somedomain.io/records/%40/TXT",
+        "rrset_values": [
+            "\"google-site-verification=w4X_E14kIj96yZZ3g7GVbN8XtQ6T8ckKkts5XjpYksE\"",
+            "\"v=spf1 include:_mailcust.gandi.net ?all\""
+        ]
+    },
+    {
+        "rrset_type": "CNAME",
+        "rrset_ttl": 10800,
+        "rrset_name": "blog",
+        "rrset_href": "https://api.gandi.net/v5/livedns/domains/somedomain.io/records/blog/CNAME",
+        "rrset_values": [
+            "blogs.vip.gandi.net."
+        ]
+    },
+    {
+        "rrset_type": "A",
+        "rrset_ttl": 1800,
+        "rrset_name": "infra",
+        "rrset_href": "https://api.gandi.net/v5/livedns/domains/somedomain.io/records/infra/A",
+        "rrset_values": [
+            "148.86.98.105"
+        ]
+    },
+    {
+        "rrset_type": "A",
+        "rrset_ttl": 1800,
+        "rrset_name": "infra2",
+        "rrset_href": "https://api.gandi.net/v5/livedns/domains/somedomain.io/records/infra2/A",
+        "rrset_values": [
+            "148.86.98.105"
+        ]
+    },
+    {
+        "rrset_type": "AAAA",
+        "rrset_ttl": 1800,
+        "rrset_name": "infra3",
+        "rrset_href": "https://api.gandi.net/v5/livedns/domains/somedomain.io/records/infra3/AAAA",
+        "rrset_values": [
+            "a9f2:e357:31db:2a01:e0a:18d:c0:f416"
+        ]
+    },
+    {
+        "rrset_type": "CNAME",
+        "rrset_ttl": 10800,
+        "rrset_name": "webmail",
+        "rrset_href": "https://api.gandi.net/v5/livedns/domains/somedomain.io/records/webmail/CNAME",
+        "rrset_values": [
+            "webmail.gandi.net."
+        ]
+    },
+    {
+        "rrset_type": "TXT",
+        "rrset_ttl": 1800,
+        "rrset_name": "_gitlab-pages-verification-code",
+        "rrset_href": "https://api.gandi.net/v5/livedns/domains/somedomain.io/records/_gitlab-pages-verification-code/TXT",
+        "rrset_values": [
+            "\"gitlab-pages-verification-code=78edd3d06a615adaf2616440ac4cbea7\""
+        ]
+    }
+]

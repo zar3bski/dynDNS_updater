@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "dynDNS-updater"
+version = "0.1.1"
+description = "standalone DNS updater for Gandi"
+readme = "README.md"
+homepage = "https://github.com/zar3bski/dynDNS_updater"
+repository = "https://github.com/zar3bski/dynDNS_updater"
+keywords = ["dns", "gandi"]
+authors = ["David Zarebski <zarebskidavid@gmail.com>"]
+include = [
+    "LICENSE",
+]
+
+[tool.poetry.dependencies]
+python = "^3.6"
+schedule = "^1.1.0"
+requests = "^2.25.1"
+dnspython = "^2.1.0"
+PyYAML = "^5.4.1"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+pylint = "^2.7.4"
+black = {version = "^20.8b1", allow-prereleases = true}
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

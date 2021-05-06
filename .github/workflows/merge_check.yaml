@@ -1,0 +1,46 @@
+name: Merge_ckecks
+on:
+  pull_request:
+    branches: [ $default-branch ]
+
+jobs:
+  unit_testing_multiple_os:
+    name: Test on node ${{ matrix.node_version }} and ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        node_version: ['10', '12']
+        os: [ubuntu-latest, windows-latest]
+
+    steps:  
+      - uses: actions/checkout@v2
+
+      - name: Set up env
+        run: |
+          pip install poetry==1.1.6
+          poetry install
+
+      - name: Unit testing
+        run: |
+          poetry run pytest
+
+  code_quality:
+    runs-on: ubuntu-latest
+    steps: 
+      - uses: actions/checkout@v2
+      - name: Set up env
+        run: |
+          pip install poetry==1.1.6
+          poetry install
+
+      - name: Check version
+        run: | 
+          last_pypi=$(pip install dyndns_updater== -v 2>/dev/null | awk '/Found link/ {print $NF}' | uniq)
+          current_version=$(perl -ne 'print "$1\n" if /^version = "(.*?)"/' pyproject.toml)
+          if [ "$last_pypi" = "$current_version" ]; then echo "version ${last_pypi} already exists on Pypi! Please updade pyproject.toml" && exit 1; fi
+      - name: Code formating
+        run: poetry run black --check dyndns_updater/
+          
+      - name: Linting
+        run: poetry run pylint dyndns_updater/
+
