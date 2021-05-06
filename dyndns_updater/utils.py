@@ -1,6 +1,6 @@
-import yaml
-from threading import Lock, Thread
+from threading import Lock
 import logging
+import yaml
 
 logging.basicConfig(level=logging.INFO)
 

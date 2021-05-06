@@ -1,9 +1,8 @@
-import requests
 import logging
-import json
-from dyndns_updater.extractor import Extractor
-from dyndns_updater.locator import Locator
 from abc import abstractmethod, ABC
+import requests
+from dyndns_updater.extractor import Extractor
+
 
 logging.basicConfig(level=logging.INFO)
 
@@ -24,11 +23,12 @@ class Updater(ABC):
         pass
 
     @abstractmethod
-    def check_and_update(self, locator: Locator):
+    def check_and_update(self):
         pass
 
     @classmethod
     def factory(cls, config, locator):
+        """Generates a pool of updater based of the provided config object"""
         pool = []
         for provider in config.dns_providers:
             # just complete this enumeration if new providers are created
