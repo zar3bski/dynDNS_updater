@@ -72,7 +72,7 @@ class YourProviderUpdater(Updater):
 ### Onboarding
 
 * [poetry](https://python-poetry.org/): dependency manager
-* [black](https://github.com/psf/black): code formater
+* [black](https://black.readthedocs.io/en/stable/): code formater
 
 ```bash
 git clone https://github.com/zar3bski/dynDNS_updater.git
