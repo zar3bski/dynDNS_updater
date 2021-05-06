@@ -41,7 +41,9 @@ jobs:
         run: poetry build
 
       - name: Publish on Pypi
-        env: 
+        with: 
           PYPI_USER: ${{ secrets.PYPI_USER }}
           PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-        run: poetry publish -u $PYPI_USER -p PYPI_PASSWORD 
+        run: |
+          echo $PYPI_USER
+          poetry publish -u $PYPI_USER -p PYPI_PASSWORD 
