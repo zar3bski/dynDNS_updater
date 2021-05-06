@@ -1,19 +1,12 @@
-name: Merge_ckecks
+name: Main
 on:
   push:
-    branches: [ $default-branch, init ]
-  pull_request:
     branches: [ $default-branch ]
 
-jobs:
-  unit_testing_multiple_os:
-    name: Test on node ${{ matrix.node_version }} and ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        node_version: ['10', '12']
-        os: [ubuntu-latest, windows-latest]
 
+jobs:
+  unit_testing:
+    runs-on: ubuntu-latest
     steps:  
       - uses: actions/checkout@v2
 
@@ -29,6 +22,11 @@ jobs:
   code_quality:
     runs-on: ubuntu-latest
     steps: 
+      - uses: actions/checkout@v2
+      - name: Set up env
+        run: |
+          pip install poetry==1.1.6
+          poetry install
       - name: Code formating
         run: poetry run black --check dyndns_updater/
           
@@ -43,7 +41,7 @@ jobs:
 
       - name: Set up env
         run: |
-          pip install poetry
+          pip install poetry==1.1.6
           poetry install
 
       - name: Build

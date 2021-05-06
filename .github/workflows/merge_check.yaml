@@ -1,7 +1,5 @@
 name: Merge_ckecks
 on:
-  push:
-    branches: [ $default-branch, init ]
   pull_request:
     branches: [ $default-branch ]
 
@@ -30,6 +28,11 @@ jobs:
     runs-on: ubuntu-latest
     steps: 
       - uses: actions/checkout@v2
+      - name: Set up env
+        run: |
+          pip install poetry==1.1.6
+          poetry install
+
       - name: Check version
         run: | 
           last_pypi=$(pip install dyndns_updater== -v 2>/dev/null | awk '/Found link/ {print $NF}' | uniq)
@@ -41,4 +44,3 @@ jobs:
       - name: Linting
         run: poetry run pylint dyndns_updater/
 
-  
