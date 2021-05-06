@@ -24,10 +24,6 @@ class Updater(ABC):
         pass
 
     @abstractmethod
-    def _record_missing(self, locator: Locator):
-        pass
-
-    @abstractmethod
     def check_and_update(self, locator: Locator):
         pass
 

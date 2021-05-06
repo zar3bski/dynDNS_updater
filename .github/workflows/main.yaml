@@ -11,7 +11,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        node_version: ['8', '10', '12']
+        node_version: ['10', '12']
         os: [ubuntu-latest, windows-latest]
 
     steps:  
@@ -19,7 +19,7 @@ jobs:
 
       - name: Set up env
         run: |
-          pip install poetry
+          pip install poetry==1.1.6
           poetry install
 
       - name: Unit testing
@@ -44,4 +44,4 @@ jobs:
         env: 
           PYPI_USER: ${{ secrets.PYPI_USER }}
           PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-        run: poetry publish -u $PYPI_USER -p PYPI_PASSWORD --dry-run
+        run: poetry publish -u $PYPI_USER -p PYPI_PASSWORD 
