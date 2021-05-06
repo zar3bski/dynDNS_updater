@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dynDNS-updater"
-version = "0.1.0"
+version = "0.1.1"
 description = "standalone DNS updater for Gandi"
 readme = "README.md"
 homepage = "https://github.com/zar3bski/dynDNS_updater"

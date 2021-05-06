@@ -1,4 +1,4 @@
-name: Main
+name: Merge_ckecks
 on:
   push:
     branches: [ $default-branch, init ]
@@ -6,7 +6,7 @@ on:
     branches: [ $default-branch ]
 
 jobs:
-  unit_testing:
+  unit_testing_multiple_os:
     name: Test on node ${{ matrix.node_version }} and ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -25,11 +25,20 @@ jobs:
       - name: Unit testing
         run: |
           poetry run pytest
+
+  code_quality:
+    runs-on: ubuntu-latest
+    steps: 
+      - name: Code formating
+        run: poetry run black --check dyndns_updater/
+          
+      - name: Linting
+        run: poetry run pylint dyndns_updater/
+
   
   publish: 
     runs-on: ubuntu-latest
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
       - name: Set up env
