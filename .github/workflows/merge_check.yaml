@@ -29,6 +29,12 @@ jobs:
   code_quality:
     runs-on: ubuntu-latest
     steps: 
+      - uses: actions/checkout@v2
+      - name: Check version
+        run: | 
+          last_pypi=$(pip install dyndns_updater== -v 2>/dev/null | awk '/Found link/ {print $NF}' | uniq)
+          current_version=$(perl -ne 'print "$1\n" if /^version = "(.*?)"/' pyproject.toml)
+          if [ "$last_pypi" = "$current_version" ]; then echo "version ${last_pypi} already exists on Pypi! Please updade pyproject.toml" && exit 1; fi
       - name: Code formating
         run: poetry run black --check dyndns_updater/
           
@@ -36,23 +42,3 @@ jobs:
         run: poetry run pylint dyndns_updater/
 
   
-  publish: 
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Set up env
-        run: |
-          pip install poetry
-          poetry install
-
-      - name: Build
-        run: poetry build
-
-      - name: Publish on Pypi
-        env: 
-          PYPI_USER: ${{ secrets.PYPI_USER }}
-          PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-        run: |
-          echo $PYPI_USER
-          poetry publish -u "$PYPI_USER" -p "$PYPI_PASSWORD" 
