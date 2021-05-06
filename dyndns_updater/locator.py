@@ -31,7 +31,7 @@ class Locator(Resolver):
 
     def __init__(self, nameserver):
         if nameserver in Locator.dns_servers.keys():
-            super(Locator, self).__init__(configure=False)
+            super().__init__(configure=False)
             self.dns_service = Locator.dns_servers[nameserver]
             self._query = Locator.dns_servers[nameserver]["query"]
             self._rdclass = Locator.dns_servers[nameserver]["rdclass"]
