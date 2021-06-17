@@ -15,7 +15,7 @@ pip install dyndns-updater
 ### CLI
 
 ```
-python -m  dyndns_updater {now,scheduled} /path/to/your/conf.yaml
+dyndns_updater {now,scheduled} /path/to/your/conf.yaml
 ```
 Mode: 
 
