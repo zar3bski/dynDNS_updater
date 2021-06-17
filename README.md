@@ -17,6 +17,13 @@ pip install dyndns-updater
 ```
 dyndns_updater {now,scheduled} /path/to/your/conf.yaml
 ```
+
+or
+
+```
+python -m  dyndns_updater {now,scheduled} /path/to/your/conf.yaml
+```
+
 Mode: 
 
 * **now**: perform action once
