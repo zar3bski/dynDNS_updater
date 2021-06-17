@@ -1,4 +1,8 @@
 # dynDNS_updater
+
+![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/zar3bski/dynDNS_updater/CI/main)
+![PyPI](https://img.shields.io/pypi/v/dynDNS_updater)
+
 standalone DNS updater for Gandi
 
 
@@ -15,8 +19,15 @@ pip install dyndns-updater
 ### CLI
 
 ```
+dyndns_updater {now,scheduled} /path/to/your/conf.yaml
+```
+
+or
+
+```
 python -m  dyndns_updater {now,scheduled} /path/to/your/conf.yaml
 ```
+
 Mode: 
 
 * **now**: perform action once

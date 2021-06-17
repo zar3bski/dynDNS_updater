@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dynDNS-updater"
-version = "0.1.4"
+version = "0.2.0"
 description = "standalone DNS updater for Gandi"
 readme = "README.md"
 homepage = "https://github.com/zar3bski/dynDNS_updater"
@@ -22,6 +22,9 @@ PyYAML = "^5.4.1"
 pytest = "^5.2"
 pylint = "^2.7.4"
 black = {version = "^20.8b1", allow-prereleases = true}
+
+[tool.poetry.scripts]
+dyndns_updater = "dyndns_updater.__main__:main"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
