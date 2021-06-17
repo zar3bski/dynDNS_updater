@@ -1,4 +1,8 @@
 # dynDNS_updater
+
+![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/zar3bski/dynDNS_updater/CI/main)
+![PyPI](https://img.shields.io/pypi/v/dynDNS_updater)
+
 standalone DNS updater for Gandi
 
 
